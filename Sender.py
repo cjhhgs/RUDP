@@ -27,7 +27,7 @@ class Sender(BasicSender.BasicSender):
 
         #加载文件
         self.buffer = Packet.sendBuffer()
-        print("loadfile")
+        #print("loadfile")
         self.buffer.loadfile(self.infile,self.MAX_DATA_LEN)
         self.winLeft = 0
         self.winRight = min(self.MAX_WIN,self.buffer.size) #将窗口大小限定
@@ -38,8 +38,8 @@ class Sender(BasicSender.BasicSender):
         t1 = threading.Thread(target=self.listener)
         
         t2 = threading.Thread(target=self.timeChecker)
-        print("buffer:",self.buffer.size)
-        print("start")
+        #print("buffer:",self.buffer.size)
+        #print("start")
         t1.start()
         t2.start()
         i = self.winLeft
@@ -48,9 +48,9 @@ class Sender(BasicSender.BasicSender):
             i += 1
         
         t1.join()
-        print("t1 join")
+        #print("t1 join")
         t2.join()
-        print("end")
+        #print("end")
 
 
         
@@ -70,7 +70,7 @@ class Sender(BasicSender.BasicSender):
 
     def listener(self):
         
-        print("listen")
+        #print("listen")
         while self.winLeft<self.buffer.size:
             #print(self.winLeft)
             msg = self.receive(0)   #监听消息
@@ -79,11 +79,11 @@ class Sender(BasicSender.BasicSender):
                 continue
             msg = msg.decode()
             if not Checksum.validate_checksum(msg):
-                print(1)
+                #print(1)
                 continue
             
             seqnum,sacknum = self.getSeqnumAndSack(msg) #获取ack信息
-            print("L:",self.winLeft,",R:",self.winRight,",seq:",seqnum,',sa:',sacknum)
+            #print("L:",self.winLeft,",R:",self.winRight,",seq:",seqnum,',sa:',sacknum)
             self.ackHandler(seqnum,sacknum) #给buffer中确认的块打上确认标记
 
             if seqnum>self.winLeft:    #若判断窗口能移动，调用过程
@@ -199,8 +199,8 @@ if __name__ == "__main__":
             debug = True
         elif o in ("-k", "--sack="):
             sackMode = True
-    print("实例化")
-    print(filename)
+    
+    
     s = Sender(dest, port, filename, debug, sackMode)
     
     try:

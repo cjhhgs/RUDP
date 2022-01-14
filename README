@@ -1,13 +1,3 @@
-# 实验环境：
-
-操作系统：win10
-
-python版本：3.8.0
-
-陈家豪 1930713021
-
-
-
 In this folder you'll find the sample receiver, code for computing and
 validating checksums, as well as example sender code.
 
@@ -30,20 +20,20 @@ your reliable sender. It provides the following methods:
         BasicSender. Specify the destination's hostname, the port at which
         the receiver is listening, and a filename to transmit. If no filename
         is provided, it will read from STDIN.
-    
+
     receive(self, timeout): Receive a packet. Waits for a packet before
         returning. Optionally you can specify a maximum timeout to wait for a
         packet. Returns the received packet as a string, or None if receive
         times out.
-    
+
     send(self,message): Sends message to the receiver specified when you
         created the sender.
-    
+
     make_packet(self,msg_type,seqno,message): Creates a RUDP packet from
         the specified message type, sequence number, and message. Generates the
         appropriate checksum, and returns the full RUDP packet with
         checksum appended.
-    
+
     split_packet(self,packet): Given a RUDP packet, splits a packet into a
         tuple of the form (msg_type, seqno, data, checksum). For packets
         without a data field, the data element will be the empty string.
@@ -70,7 +60,7 @@ your packets:
     validate_checksum(message): Returns true if the message's checksum matches
         the message, and false otherwise. This function assumes the last field
         of the message the checksum.
-    
+
     generate_checksum(message): Returns the checksum string for a message. This
         function assumes the message includes the trailing delimiter. The
         checksum is ONLY valid if you simply append this function's result to
