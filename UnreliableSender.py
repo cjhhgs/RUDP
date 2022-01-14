@@ -12,9 +12,9 @@ class UnreliableSender(BasicSender.BasicSender):
     # Handles a response from the receiver.
     def handle_response(self,response_packet):
         if Checksum.validate_checksum(response_packet):
-            print "recv: %s" % response_packet
+            print("recv: %s" % response_packet)
         else:
-            print "recv: %s <--- CHECKSUM FAILED" % response_packet
+            print("recv: %s <--- CHECKSUM FAILED" % response_packet)
 
     # Main sending loop.
     def start(self):
@@ -32,9 +32,10 @@ class UnreliableSender(BasicSender.BasicSender):
 
             packet = self.make_packet(msg_type,seqno,msg)
             self.send(packet)
-            print "sent: %s" % packet
+            print("sent: %s" % packet)
 
             response = self.receive()
+            response = response.decode()
             self.handle_response(response)
 
             msg = next_msg
@@ -48,16 +49,16 @@ need to change any of this.
 '''
 if __name__ == "__main__":
     def usage():
-        print "RUDP Unreliable Sender"
-        print "Sends data unreliably from a file or STDIN."
-        print "-f FILE | --file=FILE The file to transfer; if empty reads from STDIN"
-        print "-p PORT | --port=PORT The destination port, defaults to 33122"
-        print "-a ADDRESS | --address=ADDRESS The receiver address or hostname, defaults to localhost"
-        print "-h | --help Print this usage message"
+        print("RUDP Unreliable Sender")
+        print("Sends data unreliably from a file or STDIN.")
+        print("-f FILE | --file=FILE The file to transfer; if empty reads from STDIN")
+        print("-p PORT | --port=PORT The destination port, defaults to 33122")
+        print("-a ADDRESS | --address=ADDRESS The receiver address or hostname, defaults to localhost")
+        print("-h | --help Print this usage message")
 
     try:
         opts, args = getopt.getopt(sys.argv[1:],
-                               "f:p:a:", ["file=", "port=", "address="])
+                               "f:p:a:d", ["file=", "port=", "address=", "debug="])
     except:
         usage()
         exit()
@@ -65,6 +66,7 @@ if __name__ == "__main__":
     port = 33122
     dest = "localhost"
     filename = None
+    debug = False
 
     for o,a in opts:
         if o in ("-f", "--file="):
@@ -73,8 +75,10 @@ if __name__ == "__main__":
             port = int(a)
         elif o in ("-a", "--address="):
             dest = a
+        elif o in ("-d", "--debug"):
+            debug = True
 
-    s = UnreliableSender(dest,port,filename)
+    s = UnreliableSender(dest,port,filename,debug)
     try:
         s.start()
     except (KeyboardInterrupt, SystemExit):

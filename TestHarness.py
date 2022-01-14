@@ -15,10 +15,18 @@ you want to run. The tests automatically register themselves with the
 forwarder, so they will magically be run.
 """
 def tests_to_run(forwarder):
-    from tests import BasicTest, RandomDropTest, SackRandomDropTest
+    from tests import BasicTest, RandomDropTest, \
+                        SackRandomDropTest, RandomShuffleTest, \
+                        DuplicationTest, SackRandomShuffleTest, \
+                        SackDuplicationTest
+    
     BasicTest.BasicTest(forwarder, "README")
     RandomDropTest.RandomDropTest(forwarder, "README")
-    # SackRandomDropTest.SackRandomDropTest(forwarder, "README")
+    RandomShuffleTest.RandomShuffleTest(forwarder, "README")
+    DuplicationTest.DuplicationTest(forwarder, "README")
+    SackRandomDropTest.SackRandomDropTest(forwarder, "README")
+    SackRandomShuffleTest.SackRandomShuffleTest(forwarder, "README")
+    SackDuplicationTest.SackDuplicationTest(forwarder, "README")
 """
 Testing is divided into two pieces: this forwarder and a set of test cases in
 the tests directory.
@@ -100,7 +108,7 @@ class Forwarder(object):
     def _send(self, packet):
         """ Send a packet. """
         packet.update_packet(seqno=packet.seqno + self.start_seqno_base, update_checksum=False)
-        self.sock.sendto(packet.full_packet, packet.address)
+        self.sock.sendto(packet.full_packet.encode(), packet.address)
 
     def register_test(self, testcase, input_file):
         assert isinstance(testcase, BasicTest.BasicTest)
@@ -109,12 +117,12 @@ class Forwarder(object):
     def execute_tests(self):
         for (t, input_file) in self.tests:
             self.current_test = t
-            print "Now running '%s'..." % self.current_test.__class__.__name__
+            print("Now running '%s'..." % self.current_test.__class__.__name__)
             try:
                 self.start(input_file)
             except (KeyboardInterrupt, SystemExit):
                 exit()
-            except:
+            except Exception as e:
                 print("Test fail")
             time.sleep(1)
 
@@ -190,6 +198,7 @@ class Forwarder(object):
             while sender.poll() is None:
                 try:
                     message, address = self.sock.recvfrom(4096)
+                    message = message.decode()
                     self.handle_receive(message, address, self.current_test.sackMode)
                 except socket.timeout:
                     pass
@@ -299,12 +308,12 @@ if __name__ == "__main__":
     import sys
 
     def usage():
-        print "Forwarder/Test harness for RUDP"
-        print "-p PORT | --port PORT Base port value (default: 33123)"
-        print "-s SENDER | --sender SENDER The path to Sender implementation (default: Sender.py)"
-        print "-r RECEIVER | --receiver RECEIVER The path to the Receiver implementation (default: Receiver.py)"
-        print "-h | --help Print this usage message"
-        print "-d | --debug Enable debug mode"
+        print("Forwarder/Test harness for RUDP")
+        print("-p PORT | --port PORT Base port value (default: 33123)")
+        print("-s SENDER | --sender SENDER The path to Sender implementation (default: Sender.py)")
+        print("-r RECEIVER | --receiver RECEIVER The path to the Receiver implementation (default: Receiver.py)")
+        print("-h | --help Print this usage message")
+        print("-d | --debug Enable debug mode")
 
     try:
         opts, args = getopt.getopt(sys.argv[1:],

@@ -31,7 +31,7 @@ class Connection():
                     break # when we find out of order seqno, quit and move on
 
         if self.debug:
-            print "Receiver.py:next seqno should be %d" % (self.current_seqno+1)
+            print("Receiver.py:next seqno should be %d" % (self.current_seqno+1))
 
         # note: we return the /next/ sequence number we're expecting
         if sackMode:
@@ -73,17 +73,18 @@ class Receiver():
         while True:
             try:
                 message, address = self.receive()
+                message = message.decode()
                 msg_type, seqno, data, checksum = self._split_message(message)
                 try:
                     seqno = int(seqno)
                 except:
                     raise ValueError
                 if debug:
-                    print "Receiver.py: received %s|%d|%s|%s" % (msg_type, seqno, data[:5], checksum)
+                    print("Receiver.py: received %s|%d|%s|%s" % (msg_type, seqno, data[:5], checksum))
                 if Checksum.validate_checksum(message):
                     self.MESSAGE_HANDLER.get(msg_type,self._handle_other)(seqno, data, address)
                 elif self.debug:
-                    print "Receiver.py: checksum failed: %s|%d|%s|%s" % (msg_type, seqno, data[:5], checksum)
+                    print("Receiver.py: checksum failed: %s|%d|%s|%s" % (msg_type, seqno, data[:5], checksum))
 
                 if time.time() - self.last_cleanup > self.timeout:
                     self._cleanup()
@@ -91,9 +92,9 @@ class Receiver():
                 self._cleanup()
             except (KeyboardInterrupt, SystemExit):
                 exit()
-            except ValueError, e:
+            except ValueError as e:
                 if self.debug:
-                    print "Receiver.py:" + str(e)
+                    print("Receiver.py:" + str(e))
                 pass # ignore
 
     # waits until packet is received to return
@@ -103,7 +104,7 @@ class Receiver():
     # sends a message to the specified address. Addresses are in the format:
     #   (IP address, port number)
     def send(self, message, address):
-        self.s.sendto(message, address)
+        self.s.sendto(message.encode(), address)
 
     # this sends an ack message to address with specified seqno
     def _send_ack(self, seqno, address):
@@ -114,7 +115,7 @@ class Receiver():
         checksum = Checksum.generate_checksum(m)
         message = "%s%s" % (m, checksum)
         if self.debug:
-            print "Receiver.py: send ack %s" % m
+            print("Receiver.py: send ack %s" % m)
         self.send(message, address)
 
     def _handle_start(self, seqno, data, address):
@@ -167,25 +168,27 @@ class Receiver():
 
     def _cleanup(self):
         if self.debug:
-            print "Receiver.py: clean up time"
+            print("Receiver.py: clean up time")
         now = time.time()
+        new_connections = self.connections.copy()
         for address in self.connections.keys():
             conn = self.connections[address]
             if now - conn.updated > self.timeout:
                 if self.debug:
-                    print "Receiver.py: killed connection to %s (%.2f old)" % (address, now - conn.updated)
+                    print("Receiver.py: killed connection to %s (%.2f old)" % (address, now - conn.updated))
                 conn.end()
-                del self.connections[address]
+                del new_connections[address]
+        self.connections = new_connections
         self.last_cleanup = now
 
 if __name__ == "__main__":
     def usage():
-        print "RUDP Receiver"
-        print "-p PORT | --port=PORT The listen port, defaults to 33122"
-        print "-t TIMEOUT | --timeout=TIMEOUT Receiver timeout in seconds"
-        print "-d | --debug Print debug messages"
-        print "-h | --help Print this usage message"
-        print "-k | --sack Enable selective acknowledgement mode"
+        print("RUDP Receiver")
+        print("-p PORT | --port=PORT The listen port, defaults to 33122")
+        print("-t TIMEOUT | --timeout=TIMEOUT Receiver timeout in seconds")
+        print("-d | --debug Print debug messages")
+        print("-h | --help Print this usage message")
+        print("-k | --sack Enable selective acknowledgement mode")
 
     try:
         opts, args = getopt.getopt(sys.argv[1:],
@@ -209,7 +212,7 @@ if __name__ == "__main__":
         elif o in ("-k", "--sack="):
             sackMode = True
         else:
-            print usage()
+            usage()
             exit()
     r = Receiver(port, debug, timeout, sackMode)
     r.start()
